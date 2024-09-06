@@ -128,7 +128,10 @@ env/
 venv/
 ENV/
 env.bak/
-venv.bak/
+venv.bak
+
+# Edit app
+.vs/
 
 # Spyder project settings
 .spyderproject

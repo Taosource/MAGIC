@@ -1,0 +1,17 @@
+{
+  "ProjectInfo": {
+    "version": "0.0.0",
+    "name": "MAGIC",
+    "author": "Taosource@outlook.com"
+  },
+  "ProjectInitialData": {
+    "OperatingSystemType": {
+      "Kernel": "Windows",
+      "Architecture": "x86_64"
+    },
+    "ExecutionMode": "Dev",
+    "DebugMode": "True",
+    "Logs": "True",
+    "SystemID": "0000-0000-0000-0000"
+  }
+}

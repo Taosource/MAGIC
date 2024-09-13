@@ -19,7 +19,58 @@ class CoordinationService():
         '''初始化'''
         
         self.hand_info = hand_info
-
+        
+        
+    def hand_info_exchange(self) -> dict:
+        '''用于转换得到的初始信息，将得到的字符串转换为字典，
+        并在此过程中处理可能遇到的错误。'''
+        
+        if type(self.hand_info) == str:
+            # 验证得到的信息是否是字符串
+            
+            try:
+                out_info = dict(self.hand_info)
+                # 尝试进行转换，得到结果
+                
+            except:
+                out_info = {
+                    "data_state" : False
+                }
+                # 如果转换失败，则生成规定格式的结果
+                
+            finally:
+                return out_info
+                # 无论是否成功都将结果返回
+        
+        else:
+            # 如果不是字符串则直接返回规定格式的错误结果
+            
+            return {
+                "data_state" : False
+            }
+                
+    
+    def hand_info_nlocking(self) -> dict:
+        '''用于解密转换后的信息，是否解密及怎么解密，根据具体情况而定'''
+        
+        pass
+    
+    
+    def coordination_service(self):
+        '''该函数用于管控整个模块执行某些预加载动作'''
+        
+        self.hand_info = self.hand_info_exchange()
+        # 首先调用自身的数据格式转换模块进行数据转换，并且对相关数据进行重新赋值
+        
+        if self.hand_info["data_state"]:
+            # 检查数据是否转换成功
+            return False
+        
+        else:
+            return True 
+        
+        
+        
 
 
 

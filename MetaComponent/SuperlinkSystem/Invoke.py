@@ -105,12 +105,20 @@ class CoordinationService():
 
 class CustomizationSocket():
     """个性化socket，对socket的进一步封装实现自定义的请求，
-    为Invoke提供底层的通信细节。简化设计。"""
+    为Invoke提供底层的通信细节。简化设计。
+    该模块只需要一个参数instructions_info,
+    该参数为字典，它包含了该模块所需的所有参数。
+    它由两部分构成，即指令参数，主体参数。
+    指令参数即针对该模块运行所需的各种参数，
+    主体参数即需要被传输的数据。"""
     
-    def __init__(self):
+    def __init__(self, instructions_info: dict):
         '''用于初始化'''
-        self.socket_case = socket.socket()
-        # 实例化一个socket实例
+        
+        self.socket_case = None
+        # 为socket实例创建一个空位
+        self.instructions_info = instructions_info
+        # 绑定指令信息，它提供针对各个模块运行所需的基本信息
     
 
     
@@ -131,7 +139,12 @@ class CustomizationSocket():
         pass
     
     
-    
+    def customization_socket(self):
+        '''对外的接口，对该模块的调用只需要在调用该函数时传入指令信息，
+        它将会根据指令信息执行相应的行为'''
+        
+        
+        
         
     
 

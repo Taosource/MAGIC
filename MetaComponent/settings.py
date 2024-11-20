@@ -26,17 +26,17 @@ setting_data = {}
 if work_file_path == setting_file_path:
     # 如果两者相同那么为True
     path_state_identical = True
-    
+
 else:
     # 不相同则为False
-    path_state_identical = False 
-    
+    path_state_identical = False
+
 
 
 # 打开文件，进行读写
 with open(setting_file_path, "+r", encoding="utf-8") as f:
     setting_data = json.load(f)
-    
+
 print(setting_data)
 
 

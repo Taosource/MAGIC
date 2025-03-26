@@ -10,9 +10,9 @@ import json
 default_settings = {
     "socket_setting" : {
         "ip" : "127.0.0.1",
-        "port" : "6789",
+        "port" : 6789,
         "buffer_size" : 2048,
-        "socket_time_out" : 60
+        "socket_time_out" : 5  # 超时时间为5秒
     }
 }
 
@@ -96,15 +96,19 @@ class CoordinationService():
     def coordination_service(self):
         '''该函数用于管控整个模块执行某些预加载动作'''
 
-        if (intermediary_value := self.hand_info_exchange()["data_state"]):
+        if ((intermediary_value := self.hand_info_exchange())["data_state"]):
             # 判断数据是否转换成功 ,使用海象运算符，首先创建变量且赋值，再比较
 
 
-            if intermediary_value["encrypt"]:
+            if intermediary_value["hand_data"]["encrypt"]:
                 # 判断数据是否加密
 
                 self.hand_info = self.hand_info_decrypt()
                 # 调用解密模块进行数据解密
+
+            else:
+                # 如果数据未加密则跳过
+                pass
 
 
         else:
@@ -145,28 +149,42 @@ class CustomizationSocket():
         '''该函数用于封装socket中的tcp/ip ipv4通讯'''
         self.socket_case = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         # 创建ipv4的tcp通讯的套接字实例
-        self.socket_case.connect()
+        self.socket_case.settimeout(default_settings["socket_setting"]["socket_time_out"])
+        # 设置套接字超时时间为5s
+        d = {"info_len" : len(self.instructions_info["hand_data"].encode("utf-8")),
+             "send_time" : (len(self.instructions_info["hand_data"].encode("utf-8")) % 1024) + 1}
+        # 通过一个中间值计算出要发送数据的长度和按照每次1024字节，应该接受的次数
+        try:
+            self.socket_case.sendall(str(d))
+        except:
+            pass
 
     def udp_ip_ipv4(self):
         '''该函数用于封装socket中的tcp/ip ipv4通讯'''
         self.socket_case = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
         # 创建ipv4的udp通讯的套接字实例
+        self.socket_case.settimeout(default_settings["socket_setting"]["socket_time_out"])
+        # 设置套接字超时时间为5s
 
     def tcp_ip_ipv6(self):
         '''该函数用于封装socket中的tcp/ip ipv6通讯'''
         self.socket_case = socket.socket(socket.AF_INET6,socket.SOCK_STREAM)
         # 创建ipv6的tcp通讯的套接字实例
+        self.socket_case.settimeout(default_settings["socket_setting"]["socket_time_out"])
+        # 设置套接字超时时间为5s
 
     def udp_ip_ipv6(self):
         '''该函数用于封装socket中的udp/ip ipv6通讯'''
         self.socket_case = socket.socket(socket.AF_INET6,socket.SOCK_DGRAM)
         # 创建ipv6的udp通讯的套接字实例
+        self.socket_case.settimeout(default_settings["socket_setting"]["socket_time_out"])
+        # 设置套接字超时时间为5s
 
     def customization_socket(self):
         '''对外的接口，对该模块的调用只需要在调用该函数时传入指令信息，
         它将会根据指令信息执行相应的行为'''
 
-        if self.instructions_info["communication_protocols"] == "tcp" or self.instructions_info["communication_protocols"] == "TCP":
+        if self.instructions_info["communication_protocols"].lower() == "tcp":
             # 判断是否是tcp协议
             if self.instructions_info["ip_type"] == "ipv4":
                 # 判断是否是ipv4
@@ -181,7 +199,7 @@ class CustomizationSocket():
             else:
                 pass
 
-        if self.instructions_info["communication_protocols"] == "udp" or self.instructions_info["communication_protocols"] == "UDP":
+        if self.instructions_info["communication_protocols"].lower() == "udp":
             # 判断是否是udp协议
             if self.instructions_info["ip_type"] == "ipv4":
                 # 判断是否是ipv4
@@ -195,6 +213,33 @@ class CustomizationSocket():
             else:
                 pass
 
+    def register(self):
+        '''注册专用模块，该模块将在进行首次通讯时为注册使用'''
+        self.socket_case = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+        # 创建ipv4的tcp通讯的套接字实例
+        self.socket_case.settimeout(default_settings["socket_setting"]["socket_time_out"])
+        # 设置套接字超时时间为5s
+        try:
+            self.socket_case.connect((default_settings["socket_setting"]["ip"], default_settings["socket_setting"]["port"]))
+            # 尝试与服务端建立链接，由于是注册模块，所以使用默认配置通讯
+            socket_pass = True
+            # 设置套接字的链通性为True
+        except socket.timeout:
+            print("服务端超时！")
+        except socket.error:
+            print("套接字连接失败！")
+
+        if socket_pass:
+            # 如果套接字能够成功链接，则进行下一步
+            self.socket_case.sendall(str(self.instructions_info["hand_data"]).encode("utf-8"))
+            datas = self.socket_case.recv(1024)
+            return datas
+        else:
+            pass
+
+
+
+
 
 
 
@@ -203,14 +248,16 @@ class InvokeAPI:
     """该类将实现关于链路请求的所有上层功能，
     该类实现的功能即该模块能够被调用的所有功能。"""
 
-    def __init__(self):
-        pass
+    def __init__(self, instructions_infos: dict):
+        self.my_socket = CustomizationSocket(instructions_info = instructions_infos)
 
     def invoke(self):
-        print("Invoke API called")
-        
-    def RegistrationLink(self):
+        "常规数据传输链路"
+        self.my_socket.customization_socket()
+
+    def registration_link(self):
         '''注册链接，任何模块加入系统时的首个操作。
         它接受一些基本信息，且它默认启用一个回调函数，
         该回调函数将启动应用的链路响应模块。同时与将会传出认证信息。'''
+        self.my_socket.customization_socket()
         print("成功")
